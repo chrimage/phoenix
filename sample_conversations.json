@@ -1,0 +1,50 @@
+[
+  {
+    "id": "test1",
+    "title": "Test Conversation About Vector Databases",
+    "create_time": 1711688400.0,
+    "current_node": "node2",
+    "mapping": {
+      "node1": {
+        "message": {
+          "author": {"role": "user"},
+          "content": {"content_type": "text", "parts": ["Tell me about vector databases"]},
+          "create_time": 1711688400.0
+        },
+        "parent": null
+      },
+      "node2": {
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"content_type": "text", "parts": ["Vector databases are specialized database systems designed to store and query high-dimensional vectors efficiently. They are optimized for similarity search using techniques like approximate nearest neighbors (ANN). Popular vector databases include Chroma, Pinecone, Milvus, and Weaviate. They are especially useful for RAG (Retrieval Augmented Generation) applications where you need to find semantically similar content."]},
+          "create_time": 1711688410.0
+        },
+        "parent": "node1"
+      }
+    }
+  },
+  {
+    "id": "test2",
+    "title": "Test Conversation About Embeddings",
+    "create_time": 1711688500.0,
+    "current_node": "node4",
+    "mapping": {
+      "node3": {
+        "message": {
+          "author": {"role": "user"},
+          "content": {"content_type": "text", "parts": ["How do text embeddings work?"]},
+          "create_time": 1711688500.0
+        },
+        "parent": null
+      },
+      "node4": {
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"content_type": "text", "parts": ["Text embeddings transform words, sentences, or documents into numerical vectors in a high-dimensional space. These vectors capture semantic meaning, allowing similar texts to have similar vector representations. Modern embedding models like those from OpenAI, Google (text-embedding-004), or open-source alternatives like Sentence Transformers are based on neural networks trained on large text corpora. These embeddings enable semantic search, where you can find related content based on meaning rather than just keyword matching."]},
+          "create_time": 1711688510.0
+        },
+        "parent": "node3"
+      }
+    }
+  }
+]

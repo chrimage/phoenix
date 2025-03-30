@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Database files
+chroma_memory/
+phoenix_memory.db
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE/Editor specific files
+.vscode/
+.idea/

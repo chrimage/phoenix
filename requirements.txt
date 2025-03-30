@@ -1,0 +1,12 @@
+# requirements.txt for Project Phoenix
+
+google-generativeai
+spacy
+chromadb
+python-dotenv
+tenacity
+tqdm
+numpy
+
+# Note: After installing spacy, you need to download the language model:
+# python -m spacy download en_core_web_sm
