@@ -18,3 +18,7 @@ venv/
 # IDE/Editor specific files
 .vscode/
 .idea/
+.aider*
+
+# Data directory
+data/
