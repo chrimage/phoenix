@@ -2,6 +2,7 @@
 .env
 
 # Database files
+data/
 chroma_memory/
 phoenix_memory.db
 
@@ -18,3 +19,7 @@ venv/
 # IDE/Editor specific files
 .vscode/
 .idea/
+
+# Aider history files
+.aider.chat.history.md
+.aider.input.history
