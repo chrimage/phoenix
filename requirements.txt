@@ -12,3 +12,7 @@ typer[all]
 
 # Note: After installing spacy, you need to download the language model:
 # python -m spacy download en_core_web_sm
+
+# Testing
+pytest
+pytest-mock

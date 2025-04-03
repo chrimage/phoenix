@@ -76,10 +76,11 @@ class ChromaStore:
         if not self.collection:
              raise ConnectionError("Failed to connect to ChromaDB.")
 
-    def add_documents(self, documents: List[Union[Chunk, Summary, InsightNote]]):
+    def add_documents(self, documents: List[Union[Chunk, Summary, InsightNote]], conv_meta: Optional[ConversationMetadata] = None):
         """
         Adds a batch of documents (Chunks, Summaries, or InsightNotes) to ChromaDB.
         Embeddings are generated automatically by ChromaDB based on the collection's function.
+        Optionally accepts ConversationMetadata to update Chunk metadata.
 
         Args:
             documents: A list of Chunk, Summary, or InsightNote objects.
@@ -99,11 +100,13 @@ class ChromaStore:
             try:
                 # Ensure metadata is updated before adding
                 if hasattr(doc, 'update_metadata') and callable(doc.update_metadata):
-                     # Pass ConversationMetadata if needed (for Chunks)
-                     if isinstance(doc, Chunk) and hasattr(doc, 'conv_meta_ref'): # Assuming conv_meta is attached if needed
-                         doc.update_metadata(doc.conv_meta_ref)
-                     else:
-                         doc.update_metadata() # For Summary, InsightNote
+                    if isinstance(doc, Chunk):
+                        if conv_meta: # Use the passed conv_meta for Chunks
+                            doc.update_metadata(conv_meta)
+                        else:
+                            print(f"Warning: Adding Chunk {doc.doc_id} without ConversationMetadata for metadata update.")
+                    else: # For Summary, InsightNote
+                        doc.update_metadata()
 
                 texts_to_add.append(doc.text)
                 ids_to_add.append(doc.doc_id)
@@ -247,11 +250,11 @@ class ChromaStore:
                 token_count=token_count,
                 message_ids=[user_message.msg_id, ai_response.msg_id]
             )
-            # Attach conv_meta temporarily for update_metadata within add_documents
-            chunk.conv_meta_ref = conv_meta
+            # Pass conv_meta directly to add_documents for metadata update
+            # chunk.conv_meta_ref = conv_meta # REMOVED
 
             print(f"[Saving conversation turn to ChromaDB as chunk {chunk_id[:8]}]")
-            self.add_documents([chunk])
+            self.add_documents([chunk], conv_meta=conv_meta) # Pass conv_meta here
             return True
 
         except Exception as e:

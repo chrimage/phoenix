@@ -145,9 +145,9 @@ class IndexerService:
                         chunks = self.chunk_conversation(parsed_conv)
                         if chunks:
                             print(f"  - Generated {len(chunks)} chunks")
-                            # Attach conv metadata reference needed by ChromaStore's add_documents
-                            for chunk in chunks:
-                                chunk.conv_meta_ref = parsed_conv.metadata
+                            # Metadata is updated within chroma_store.add_documents now
+                            # for chunk in chunks:
+                            #    chunk.conv_meta_ref = parsed_conv.metadata # REMOVED
                             documents_to_add.extend(chunks)
                             processed_chunk_count += len(chunks)
                         else:
@@ -197,98 +197,3 @@ class IndexerService:
                  print(f"⚠️ Failed to add {failed_add_count} documents to ChromaDB.")
             print(f"Memory stored in: {settings.CHROMA_DIR} (ChromaDB) and {settings.DB_FILE_NAME} (SQLite)")
             print("------------------------------")
-
-
-# Example Usage (for testing - requires setting up mocks or actual services)
-if __name__ == "__main__":
-    print("Testing IndexerService...")
-
-    # This test requires significant mocking or actual service setup
-    # For a basic structural test:
-    print("Setting up mock components...")
-
-    class MockParser:
-        def parse_conversation_data(self, data):
-            # Simulate parsing a conversation
-            if data.get("id") == "skip": return None
-            meta = ConversationMetadata(conv_id=data.get("id", "mock_id"), title=data.get("title", "Mock Title"))
-            msgs = [Message(role="user", content="Hello")]
-            return ParsedConversation(metadata=meta, messages=msgs)
-
-    class MockSqliteStore:
-        def __init__(self): self.saved_meta = {}
-        def connect(self): print("Mock SQLite connect")
-        def close(self): print("Mock SQLite close")
-        def save_conversation_metadata(self, meta): print(f"Mock save meta: {meta.conv_id}"); self.saved_meta[meta.conv_id] = meta; return True
-        def __enter__(self): self.connect(); return self
-        def __exit__(self, *args): self.close()
-
-    class MockChromaStore:
-        def __init__(self): self.added_docs = []
-        def connect(self): print("Mock Chroma connect")
-        def close(self): print("Mock Chroma close")
-        def add_documents(self, docs): print(f"Mock add docs: {len(docs)}"); self.added_docs.extend(docs)
-        def __enter__(self): self.connect(); return self
-        def __exit__(self, *args): self.close()
-
-    class MockLLMAdapter:
-        def generate_text(self, *args, **kwargs): print("Mock generate text"); return "Mock summary/insight"
-
-    def mock_chunker(parsed_conv, *args, **kwargs):
-        print(f"Mock chunk conv: {parsed_conv.metadata.conv_id}")
-        # Return a single mock chunk
-        chunk = Chunk(doc_id=f"mock_chunk_{parsed_conv.metadata.conv_id}", text="Mock chunk text", conv_id=parsed_conv.metadata.conv_id, start_time=time.time(), end_time=time.time())
-        chunk.conv_meta_ref = parsed_conv.metadata # Simulate attaching ref
-        return [chunk]
-
-    def mock_summarizer(parsed_conv, adapter, *args, **kwargs):
-        print(f"Mock summarize conv: {parsed_conv.metadata.conv_id}")
-        # Return a mock summary
-        return Summary(doc_id=f"mock_summary_{parsed_conv.metadata.conv_id}", text="Mock summary", original_conv_id=parsed_conv.metadata.conv_id)
-
-    def mock_insight_generator(parsed_conv, adapter, *args, **kwargs):
-        print(f"Mock generate insights: {parsed_conv.metadata.conv_id}")
-        # Return a mock insight
-        return [InsightNote(doc_id=f"mock_insight_{parsed_conv.metadata.conv_id}", text="Mock insight", original_conv_id=parsed_conv.metadata.conv_id)]
-
-    # Create a dummy input file
-    dummy_input_file = "dummy_conversations.json"
-    dummy_data = [
-        {"id": "conv1", "title": "First", "create_time": time.time() - 100, "mapping": {"node1": {"message": {"author": {"role": "user"}, "content": {"content_type": "text", "parts": ["Test"]}}}}},
-        {"id": "conv2", "title": "Second", "create_time": time.time() - 50, "mapping": {"node1": {"message": {"author": {"role": "user"}, "content": {"content_type": "text", "parts": ["Test 2"]}}}}},
-        {"id": "skip", "title": "Skip Me"}, # Test skipping
-    ]
-    with open(dummy_input_file, 'w') as f:
-        json.dump(dummy_data, f)
-
-    print("\nInstantiating IndexerService with mocks...")
-    service = IndexerService(
-        parser=MockParser(),
-        chunker_func=mock_chunker,
-        summarizer_func=mock_summarizer,
-        insight_generator_func=mock_insight_generator,
-        sqlite_store=MockSqliteStore(),
-        chroma_store=MockChromaStore(),
-        llm_adapter=MockLLMAdapter()
-    )
-
-    print(f"\nRunning process_input_file on {dummy_input_file}...")
-    try:
-        service.process_input_file(dummy_input_file)
-    except Exception as e:
-        print(f"Error during service processing test: {e}")
-        traceback.print_exc()
-
-    # Basic checks on mock stores (if needed)
-    print(f"\nMock SQLite store contains metadata for: {list(service.sqlite_store.saved_meta.keys())}")
-    print(f"Mock Chroma store added {len(service.chroma_store.added_docs)} documents.")
-    # assert "conv1" in service.sqlite_store.saved_meta
-    # assert "conv2" in service.sqlite_store.saved_meta
-    # assert len(service.chroma_store.added_docs) == 6 # 2 chunks + 2 summaries + 2 insights
-
-    # Clean up dummy file
-    import os
-    os.remove(dummy_input_file)
-    print(f"\nCleaned up {dummy_input_file}.")
-
-    print("\nIndexerService testing finished.")

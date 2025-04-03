@@ -108,10 +108,10 @@ class ChatService:
         # Save insights to ChromaDB
         if insight_notes:
             try:
-                # Attach conv metadata reference needed by ChromaStore's add_documents
-                for note in insight_notes:
-                     note.conv_meta_ref = self.current_conv_metadata # Attach ref
-                self.chroma_store.add_documents(insight_notes)
+                # Metadata is handled within chroma_store.add_documents if needed
+                # for note in insight_notes:
+                #      note.conv_meta_ref = self.current_conv_metadata # REMOVED
+                self.chroma_store.add_documents(insight_notes) # Pass insights directly
                 print(f"[Successfully saved {len(insight_notes)} final insights/facts to ChromaDB.]")
             except Exception as e:
                 print(f"[Error saving final insights to ChromaDB: {e}]")
@@ -220,52 +220,3 @@ class ChatService:
             traceback.print_exc()
 
         print("\nChat session ended. Goodbye!")
-
-
-# Example Usage (Requires setting up real or mock components)
-if __name__ == "__main__":
-    print("Setting up components for ChatService test...")
-    # This requires either real credentials and data or extensive mocking
-
-    # Use mocks from previous tests for structure demonstration
-    from phoenix.storage.sqlite_store import SqliteStore as MockSqliteStore # Reuse mock if simple
-    from phoenix.storage.chroma_store import ChromaStore as MockChromaStore # Reuse mock
-    from phoenix.adapters.llm.google_genai import GoogleGenAIAdapter as MockLLMAdapter # Reuse mock
-    from phoenix.chat.context_builder import assemble_chat_context as mock_context_builder
-    from phoenix.chat.response_generator import generate_chat_response as mock_response_generator
-    from phoenix.indexing.insight_generator import generate_insight_notes as mock_insight_generator
-
-    print("NOTE: ChatService test uses basic mocks. Input 'hello', then 'exit'.")
-
-    try:
-        # Instantiate with mocks
-        # Ensure mocks have necessary methods if reusing simple ones
-        mock_chroma = MockChromaStore()
-        mock_sqlite = MockSqliteStore()
-        mock_llm = MockLLMAdapter()
-
-        # Add dummy search methods to mocks if not present
-        if not hasattr(mock_chroma, 'search_relevant_chunks'):
-             mock_chroma.search_relevant_chunks = lambda q: []
-        if not hasattr(mock_chroma, 'search_relevant_insights'):
-             mock_chroma.search_relevant_insights = lambda q: []
-        if not hasattr(mock_chroma, 'save_conversation_turn_as_chunk'):
-             mock_chroma.save_conversation_turn_as_chunk = lambda *a: True
-
-        chat_service = ChatService(
-            chroma_store=mock_chroma,
-            sqlite_store=mock_sqlite,
-            llm_adapter=mock_llm,
-            context_builder_func=mock_context_builder,
-            response_generator_func=mock_response_generator,
-            insight_generator_func=mock_insight_generator
-        )
-
-        # Run the chat (will require manual input: type 'hello', then 'exit')
-        # chat_service.run_interactive_chat()
-
-        print("\nChatService test finished (manual input required).")
-
-    except Exception as e:
-        print(f"\nError during ChatService test setup or execution: {e}")
-        traceback.print_exc()
